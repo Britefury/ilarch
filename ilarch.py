@@ -16,6 +16,8 @@ class ILarch(widgets.DOMWidget):
 	def __init__(self, **kwargs):
 		super(ILarch, self).__init__(**kwargs)
 		self.on_msg(self._on_msg_revc)
+		self.on_larch_msg = None
+		self.count = 0
 
 	def send_larch_msg(self, msg):
 		self.send({
@@ -25,5 +27,7 @@ class ILarch(widgets.DOMWidget):
 
 
 	def _on_msg_revc(self, _, msg):
-		print 'Received {0}'.format(msg)
+		self.count += 1
+		if self.on_larch_msg is not None:
+			self.on_larch_msg(msg)
 
