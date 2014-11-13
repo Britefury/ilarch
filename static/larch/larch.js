@@ -9,11 +9,11 @@
 
 
 
-Larch = function(view_id, send, register_recv_handler, maxInflightMessages) {
+Larch = function(view_id, send_events, maxInflightMessages) {
     var larch = {
         __view_id: undefined,
         __segment_table: {},
-        __send: send,
+        __send_events: send_events,
         __maxInflightMessages: maxInflightMessages
     };
 
@@ -969,23 +969,24 @@ Larch = function(view_id, send, register_recv_handler, maxInflightMessages) {
                 ack_immediately: larch.__unacknowledgedSentMessages >= larch.__maxInflightMessages
             };
 
-            larch.__send(message_packet);
+            larch.__send_events(message_packet);
         }
     };
 
-    register_recv_handler(function(msg) {
+    larch.receiveMessagesFromServer = function(messages) {
+        console.log("LARCH: larch.receiveMessagesFromServer: " + messages);
         //console.log('EVENT ' + block_id + ': received ' + msg.length);
         // We have received a message from the back-end; this counts as an acknowledgement
         larch.__unacknowledgedSentMessages = 0;
 
         larch.__handlingReceivedMessages = true;
-        larch.__handleMessagesFromServer(msg.messages);
+        larch.__handleMessagesFromServer(messages);
         larch.__handlingReceivedMessages = false;
 
         if (larch.__messageBuffer.length > 0) {
             larch.__sendEventMessagesToServer([]);
         }
-    });
+    };
 
     larch.__postEventMessage = function(ev_msg) {
         var messages = [];
@@ -1810,7 +1811,8 @@ Larch = function(view_id, send, register_recv_handler, maxInflightMessages) {
     //
     //
 
-    larch.__onDocumentReady = function(initialisers) {
+    larch.initialise = function(initialisers, doc_init_js) {
+        console.log("LARCH: larch.initialise");
         larch.__register_segments();
         try {
             larch.__executeNodeScripts(initialisers);
@@ -1819,6 +1821,8 @@ Larch = function(view_id, send, register_recv_handler, maxInflightMessages) {
             larch.__setupCommandListeners();
         }
         larch.__postModificationCleanup();
+
+        larch.__executeJS(doc_init_js, "Document initialisation scripts");
 
         // Activate additional client side debugging toggle command: C-D
         larch.registerClientSideCommand([larch.__createKey(67), larch.__createKey(68)],
