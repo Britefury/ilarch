@@ -11,7 +11,7 @@ import traceback
 import sys
 
 from larch.core.dynamicpage.page import DynamicPage, EventHandleError
-from larch.core.dynamicpage import messages, user
+from larch.core.dynamicpage import messages
 from larch.inspector import present_exception
 
 
