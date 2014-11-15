@@ -14,7 +14,6 @@ import mimetypes
 from larch.core.dynamicpage.segment import HtmlContent
 from larch.live import LiveFunction
 from larch.pres import pres, html
-from larch.core.subject import Subject
 from larch import msg, js
 
 

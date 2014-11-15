@@ -8,8 +8,7 @@
 ##-*************************
 from larch.core.dynamicpage.service import DynamicPageService
 from larch.core.incremental_view import IncrementalView
-from larch.core.subject import Subject
-from larch import command
+# from larch import command
 
 
 class CouldNotResolveLocationError (Exception):
