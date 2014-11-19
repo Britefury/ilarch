@@ -6,6 +6,8 @@
 ##-* named 'LICENSE.txt' that accompanies this program. This source code is
 ##-* (C)copyright Geoffrey French 2011-2014.
 ##-*************************
+from IPython.display import display, Javascript
+
 
 
 class PageDependency (object):
@@ -21,7 +23,7 @@ class PageDependency (object):
 		return self.__deps
 
 
-	def to_html(self):
+	def ipython_setup(self):
 		raise NotImplementedError, 'abstract'
 
 
@@ -46,8 +48,8 @@ class CSSURLDependency (_RegisteredDependency):
 		super(CSSURLDependency, self).__init__(deps)
 		self.__url = url
 
-	def to_html(self):
-		return '<link rel="stylesheet" type="text/css" href="{0}"/>'.format(self.__url)
+	def ipython_setup(self):
+		display(Javascript(css=self.__url))
 
 
 
@@ -59,20 +61,8 @@ class JSURLDependency (_RegisteredDependency):
 		super(JSURLDependency, self).__init__(deps)
 		self.__url = url
 
-	def to_html(self):
-		return '<script type="text/javascript" src="{0}"></script>'.format(self.__url)
-
-
-
-class CSSSourceDependency (_RegisteredDependency):
-	_deps = {}
-
-	def __init__(self, source, deps=None):
-		super(CSSSourceDependency, self).__init__(deps)
-		self.__source = source
-
-	def to_html(self):
-		return '<style>\n{0}\n</style>'.format(self.__source)
+	def ipython_setup(self):
+		display(Javascript(url=self.__url))
 
 
 
@@ -83,6 +73,6 @@ class JSSourceDependency (_RegisteredDependency):
 		super(JSSourceDependency, self).__init__(deps)
 		self.__source = source
 
-	def to_html(self):
-		return '<script type="text/javascript">\n{0}\n</script>'.format(self.__source)
+	def ipython_setup(self):
+		display(Javascript(self.__source))
 

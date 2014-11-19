@@ -1,5 +1,20 @@
 require(["widgets/js/widget",
     "/files/static/larch/larch.js",
+    "/files/static/larch/larch_ui.js",
+    "/files/static/noty/jquery.noty.js",
+    "/files/static/noty/layouts/bottom.js",
+    "/files/static/noty/layouts/bottomLeft.js",
+    "/files/static/noty/layouts/bottomCenter.js",
+    "/files/static/noty/layouts/bottomRight.js",
+    "/files/static/noty/layouts/center.js",
+    "/files/static/noty/layouts/centerLeft.js",
+    "/files/static/noty/layouts/centerRight.js",
+    "/files/static/noty/layouts/inline.js",
+    "/files/static/noty/layouts/top.js",
+    "/files/static/noty/layouts/topLeft.js",
+    "/files/static/noty/layouts/topCenter.js",
+    "/files/static/noty/layouts/topRight.js",
+    "/files/static/noty/themes/default.js",
     "components/jquery-ui/ui/minified/jquery-ui.min"], function(WidgetManager){
 
 
@@ -20,6 +35,7 @@ require(["widgets/js/widget",
             };
 
             self.__larch = Larch(view_id, send_events, max_inflight);
+            self.__larch = LarchControls(self.__larch);
 
             this.$content = $(initial_content);
             this.$content.appendTo(this.$el);

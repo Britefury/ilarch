@@ -10,6 +10,7 @@ from larch.core.dynamicpage import messages
 from larch.inspector import present_exception
 
 
+
 def install_ilarch():
 	with open('static/larch/ilarch.js', 'r') as f:
 		ilarch_js = f.read()
@@ -29,8 +30,11 @@ class ILarch(widgets.DOMWidget):
 	def __init__(self, page, **kwargs):
 		self.__page = page
 		page.register_queue_synchronize_callback(self.__on_queue_synchronize)
-		view_id, initial_content, doc_init_scripts, initialisers = page.initial_content()
+		view_id, initial_content, doc_init_scripts, initialisers, deps = page.initial_content()
 		self.__synchronize_op_in_progress = False
+
+		for dep in deps:
+			dep.ipython_setup()
 
 		print 'ILarch.__init__: view_id={0}, initial_content={1}, doc_init_scripts={2}, initialisers={3}'.format(view_id, initial_content, doc_init_scripts, initialisers)
 
@@ -61,8 +65,9 @@ class ILarch(widgets.DOMWidget):
 		error_messages = []
 
 		# Synchronise the view
+		deps = []
 		try:
-			client_messages = self.__page.synchronize()
+			client_messages, deps = self.__page.synchronize()
 		except Exception, e:
 			# Catch internal server error
 			err_html = present_exception.exception_to_html_src(e, sys.exc_info()[1], sys.exc_info()[2])
@@ -71,6 +76,9 @@ class ILarch(widgets.DOMWidget):
 			client_messages = []
 
 		self.__synchronize_op_in_progress = False
+
+		for dep in deps:
+			dep.ipython_setup()
 
 		# Send messages to the client
 		msgs_out = client_messages + error_messages
@@ -92,14 +100,18 @@ class ILarch(widgets.DOMWidget):
 
 
 		# Synchronise the view
+		deps = []
 		try:
-			client_messages = self.__page.synchronize()
+			client_messages, deps = self.__page.synchronize()
 		except Exception, e:
 			# Catch internal server error
 			err_html = present_exception.exception_to_html_src(e, sys.exc_info()[1], sys.exc_info()[2])
 			msg = messages.error_during_update_message(err_html)
 			error_messages.append(msg)
 			client_messages = []
+
+		for dep in deps:
+			dep.ipython_setup()
 
 		self.__synchronize_op_in_progress = False
 

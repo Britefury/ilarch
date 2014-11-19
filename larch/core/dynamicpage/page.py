@@ -633,6 +633,9 @@ class DynamicPage (object):
 		# Build message list
 		msg_list = []
 
+		# Dependencies
+		deps_list = []
+
 		if self.__queued_page_reload is not None:
 			location, get_params = self.__queued_page_reload
 
@@ -641,8 +644,6 @@ class DynamicPage (object):
 			# Close the page; it's dead
 			self.__service._close_page(self)
 		else:
-			# Dependency message
-			deps_list = []
 			# Get new global dependencies
 			if not global_dependencies.are_global_dependencies_up_to_date(self.__global_deps_version):
 				# Get the global dependencies
@@ -657,9 +658,6 @@ class DynamicPage (object):
 			# Add any local dependencies
 			deps_list.extend(self.__dependencies)
 			self.__dependencies = []
-			if len(deps_list) > 0:
-				msg = messages.dependency_message([dep.to_html()   for dep in deps_list])
-				msg_list.append(msg)
 
 			# Page modifications message
 			if self.__page_modifications_message is not None:
@@ -695,7 +693,7 @@ class DynamicPage (object):
 				self.__resource_error_messages = []
 
 
-		return msg_list
+		return msg_list, deps_list
 
 
 
@@ -882,7 +880,6 @@ class DynamicPage (object):
 		deps_list = list(self.__global_deps)  +  self.__dependencies
 		self.__global_deps_version = global_dependencies.get_global_dependencies_version()
 
-		dependency_tags = '\n'.join([dep.to_html()   for dep in deps_list])
 		self.__dependencies = []
 
 		initialisers = self._table._get_all_initialisers()
@@ -890,11 +887,7 @@ class DynamicPage (object):
 		self._table._clear_changes()
 
 
-		if len(deps_list) > 0:
-			print 'WARNING: DynamicPage.initial_content: dependencies not processed: {0}'.format(deps_list)
-
-
-		return self._view_id, root_content, self.__js_queue, initialisers
+		return self._view_id, root_content, self.__js_queue, initialisers, deps_list
 
 
 

@@ -1,0 +1,103 @@
+/*************************
+-* This program is free software; you can use it, redistribute it and/or
+-* modify it under the terms of the GNU Affero General Public License
+-* version 3 as published by the Free Software Foundation. The full text of
+-* the GNU Affero General Public License version 3 can be found in the file
+-* named 'LICENSE.txt' that accompanies this program. This source code is
+-* (C)copyright Geoffrey French 2011-2014.
+-*************************/
+
+.larch_ui_focusable {
+    margin-bottom: 0.8em !important;
+}
+
+.larch_ui_focused {
+    box-shadow: -1px 6px 21px #6c7884 !important;
+}
+
+
+/* Contains the ckEditor rich text and the edit popover */
+.__larch_ui_ckeditor_edit_container {
+
+    min-height: 1em;
+    z-index: -999;
+}
+
+.__larch_ui_ckeditor_edit_popover_container {
+    position: absolute;
+    width: 95%;
+    height: 0;      /* Needed to ensure that it does not block mouse events to text behind it */
+}
+
+.__larch_ui_ckeditor_edit_popover {
+    display: none;
+
+    float: right;
+
+    width: 10em;
+    margin: 0 1em 0 0;
+
+    background: rgba(0,0,0,0.7);
+    border: 1px solid rgba(0.5, 0.5, 0.5, 0.7);
+    border-radius: 5px;
+    box-shadow: 0 3px 5px #bbb;
+    padding: 3px 10px;
+
+    color: #fff;
+    z-index: 9999;
+}
+
+.__larch_ui_ckeditor_edit_container:hover .__larch_ui_ckeditor_edit_popover {
+    display: block;
+}
+
+
+
+
+ul.fragment_inspector_list {
+    list-style: none;
+    margin: 4px 4px;
+    padding: 0;
+}
+
+ul.fragment_inspector_list > li {
+    float: left;
+}
+
+ul.fragment_inspector_list > li > a {
+    display: block;
+
+    background: #f0f0f0;
+    padding: 8px 12px;
+    border: 1px solid #d0d0d0;
+    border-radius: 4px;
+    margin: 4px 4px;
+
+    box-shadow: 0 4px 8px #808080;
+
+    font-size: 0.85em;
+    color: #303030;
+    text-decoration: none;
+    text-align: left;
+}
+
+ul.fragment_inspector_list > li > a:hover {
+    background: #ffffff;
+    border: 1px solid #e0e0e0;
+}
+
+.inspector_model_python {
+    color: #080;
+    font-family: monospace;
+}
+
+.inspector_model_pres {
+    color: #06c;
+    font-family: monospace;
+}
+
+.inspector_id {
+    color: #806;
+    font-family: monospace;
+}
+

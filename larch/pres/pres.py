@@ -70,11 +70,9 @@ class Pres (object):
 		return self._wrap_in_eval([], [js.JSCall(js_fn_name, (js.name_node,) + args)])
 
 
-	def use_css(self, url=None, source=None):
+	def use_css(self, url=None):
 		if url is not None:
 			dep = dependencies.CSSURLDependency.dep_for(url)
-		elif source is not None:
-			dep = dependencies.CSSSourceDependency.dep_for(source)
 		else:
 			raise TypeError, 'either a URL or source text must be provided'
 
@@ -290,8 +288,8 @@ class KeyEventSource (EventSource):
 
 
 def post_event_js_code(event_name, event_json={}, event_source_js='this'):
-	return 'larch.postEvent({0},\'{1}\', {2});'.format(event_source_js, event_name, json.dumps(event_json))
+	return 'Larch.getLarchInstanceForElement({0}).postEvent({0},\'{1}\', {2});'.format(event_source_js, event_name, json.dumps(event_json))
 
 def post_event_js_code_for_handler(event_name, event_json={}, event_source_js='this'):
-	return 'javascript:larch.postEvent({0},\'{1}\', {2});'.format(event_source_js, event_name, json.dumps(event_json))
+	return 'javascript:Larch.getLarchInstanceForElement({0}).postEvent({0},\'{1}\', {2});'.format(event_source_js, event_name, json.dumps(event_json))
 

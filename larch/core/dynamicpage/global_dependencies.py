@@ -6,6 +6,7 @@
 ##-* named 'LICENSE.txt' that accompanies this program. This source code is
 ##-* (C)copyright Geoffrey French 2011-2014.
 ##-*************************
+from IPython.display import display, Javascript
 
 
 _global_dependencies = set()
@@ -35,24 +36,19 @@ class GlobalDependency (object):
 	def __init__(self):
 		_register_global_dependency(self)
 
-	def to_html(self):
+	def ipython_setup(self):
 		raise NotImplementedError, 'abstract'
 
 
 
 class GlobalCSS (GlobalDependency):
-	def __init__(self, url=None, source=None):
+	def __init__(self, url):
 		super(GlobalCSS, self).__init__()
 		self.__url = url
-		self.__source = source
-		if url is None  and  source is None:
-			raise ValueError, 'either a URL or source text must be provided'
 
-	def to_html(self):
+	def ipython_setup(self):
 		if self.__url is not None:
-			return '<link rel="stylesheet" type="text/css" href="{0}"/>'.format(self.__url)
-		elif self.__source is not None:
-			return '<style>\n{0}\n</style>'.format(self.__source)
+			display(Javascript(css=self.__url))
 		else:
 			raise RuntimeError, 'This should not have happened, due to being checked earlier'
 
@@ -66,11 +62,11 @@ class GlobalJS (GlobalDependency):
 		if url is None  and  source is None:
 			raise ValueError, 'either a URL or source text must be provided'
 
-	def to_html(self):
+	def ipython_setup(self):
 		if self.__url is not None:
-			return '<script type="text/javascript" src="{0}"></script>'.format(self.__url)
+			display(Javascript(url=self.__url))
 		elif self.__source is not None:
-			return '<script type="text/javascript">\n{0}\n</script>'.format(self.__source)
+			display(Javascript(self.__source))
 		else:
 			raise RuntimeError, 'This should not have happened, due to being checked earlier'
 

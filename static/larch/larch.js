@@ -10,7 +10,7 @@
 
 
 Larch = function(view_id, send_events, maxInflightMessages) {
-    var larch = {
+    var self = {
         __view_id: undefined,
         __segment_table: {},
         __send_events: send_events,
@@ -18,7 +18,7 @@ Larch = function(view_id, send_events, maxInflightMessages) {
     };
 
 
-    larch.__getElementsOfClass = function(className, tagName) {
+    self.__getElementsOfClass = function(className, tagName) {
         // Utility function to get elements of a named class
         // if running on IE, a slower method is used that first involves finding elements by tagName then filtering by class
         if (document.getElementsByClassName) {
@@ -41,7 +41,7 @@ Larch = function(view_id, send_events, maxInflightMessages) {
 
 
 
-    larch.__addDependency = function(dep) {
+    self.__addDependency = function(dep) {
         // Adds a dependency to the <head> element
         // A dependency is an element reference some CSS or a JS script
         $(dep).appendTo("head");
@@ -55,7 +55,7 @@ Larch = function(view_id, send_events, maxInflightMessages) {
     //
     //
 
-    larch.__getSegmentIDForEvent = function(src_element) {
+    self.__getSegmentIDForEvent = function(src_element) {
         // Get the segment ID that should be used to identify the source of an event to
         // the backend.
         // `src_element` is a DOM element. Searches the ancestors of src_element until one with
@@ -74,7 +74,7 @@ Larch = function(view_id, send_events, maxInflightMessages) {
         return segment_id;
     };
 
-    larch.__buildConnectivity = function(segment) {
+    self.__buildConnectivity = function(segment) {
         // `segment` consists of the start and end nodes of a segment.
         // We often remove elements from the DOM in order to alter its contents.
         // Sometimes we put these nodes back in again. In such cases, the nextSibling attribute will be null,
@@ -91,7 +91,7 @@ Larch = function(view_id, send_events, maxInflightMessages) {
         prev.__lch_next = segment.end;
     };
 
-    larch.__clearConnectivity = function(nodes) {
+    self.__clearConnectivity = function(nodes) {
         // Clear connectivity built with __buildConnectivity
 
         var prev = null;        // Maintain previous node, so we can clear its connectivity after we have moved on to the next
@@ -106,14 +106,14 @@ Larch = function(view_id, send_events, maxInflightMessages) {
     };
 
 
-    larch.__newSegmentState = function(start, end) {
+    self.__newSegmentState = function(start, end) {
         // This creates a new 'segment state' to go into the segment table.
         // Larch defines a segment as a set of nodes that reside between
         // a start and end node
         return {'start': start, 'end': end}
     };
 
-    larch.__getNodesInActiveSegment = function(segment) {
+    self.__getNodesInActiveSegment = function(segment) {
         // Get the list of nodes in a segment
         // Does not traverse into children
         // It builds a list of siblings between - and including - the start that
@@ -126,20 +126,20 @@ Larch = function(view_id, send_events, maxInflightMessages) {
         return nodeList;
     };
 
-    larch.__getNodesInActiveSegmentById = function(segment_id) {
+    self.__getNodesInActiveSegmentById = function(segment_id) {
         // Get the nodes in an active segment identified by segment ID
         // The segment must be active in order for it to be found in the
         // segment table.
-        var segment_table = larch.__segment_table;
+        var segment_table = self.__segment_table;
         var state = segment_table[segment_id];
         if (state === undefined) {
             console.log("larch.__getNodesInActiveSegmentById: Cannot get segment " + segment_id);
             return;
         }
-        return larch.__getNodesInActiveSegment(state);
+        return self.__getNodesInActiveSegment(state);
     }
 
-    larch.__getNodesInInactiveSegment = function(segment) {
+    self.__getNodesInInactiveSegment = function(segment) {
         // Get the nodes in an *inactive* segment
 
         // Iterate using __lch_next attribute; see __newSegmentState function for explanation
@@ -166,7 +166,7 @@ Larch = function(view_id, send_events, maxInflightMessages) {
 
 
 
-    larch.__replaceSegment = function(oldSegmentState, newSegmentState) {
+    self.__replaceSegment = function(oldSegmentState, newSegmentState) {
         // Replace the nodes within `oldSegmentState` within those in `newSegmentState`.
         // The is the main DOM manipulation operation used by Larch to update the DOM.
 
@@ -175,28 +175,28 @@ Larch = function(view_id, send_events, maxInflightMessages) {
 
         // The nodes that we are about to remove from the DOM may be reused later.
         // Build out own connectivity structure so that we can iterate through them
-        larch.__buildConnectivity(oldSegmentState);
+        self.__buildConnectivity(oldSegmentState);
 
-        var oldNodes = larch.__getNodesInActiveSegment(oldSegmentState);
-        var newNodes = larch.__getNodesInActiveSegment(newSegmentState);
+        var oldNodes = self.__getNodesInActiveSegment(oldSegmentState);
+        var newNodes = self.__getNodesInActiveSegment(newSegmentState);
 
         newNodes.forEach(function(n) {parent.insertBefore(n, first);});
         oldNodes.forEach(function(n) {parent.removeChild(n);});
     };
 
 
-    larch.__replacePlaceholder = function(placeHolder, existingInactiveSegmentState) {
+    self.__replacePlaceholder = function(placeHolder, existingInactiveSegmentState) {
         // This replaces a placeholder element with the nodes in an inactive segment.
         // This DOM manipulation operation allows existing parts of the DOM tree to be retained;
         // they are un-parented and re-parented to new nodes.
         var parent = placeHolder.parentNode;
 
-        var newNodes = larch.__getNodesInInactiveSegment(existingInactiveSegmentState);
+        var newNodes = self.__getNodesInInactiveSegment(existingInactiveSegmentState);
 
         newNodes.forEach(function(n) {parent.insertBefore(n, placeHolder);});
 
         // These nodes are active: clear connectivity
-        larch.__clearConnectivity(newNodes);
+        self.__clearConnectivity(newNodes);
 
         parent.removeChild(placeHolder);
     };
@@ -205,25 +205,25 @@ Larch = function(view_id, send_events, maxInflightMessages) {
 
 
 
-    larch.__createSegmentContentNodesFromSource = function(content) {
+    self.__createSegmentContentNodesFromSource = function(content) {
         // Create nodes to form the contents of a segment from HTML source
         // Creates a temporary <div> element containing the content and extracts its child nodes.
         var elem = document.createElement("div");
         elem.innerHTML = content;
-        return larch.__newSegmentState(elem.firstChild, elem.lastChild);
+        return self.__newSegmentState(elem.firstChild, elem.lastChild);
     };
 
 
 
-    larch.__getPlaceHolderNodes = function() {
+    self.__getPlaceHolderNodes = function() {
         // Find the placeholder nodes within the document
-        return larch.__getElementsOfClass("__lch_seg_placeholder", "span");
+        return self.__getElementsOfClass("__lch_seg_placeholder", "span");
     };
 
-    larch.__getSegmentBeginNodes = function(q) {
+    self.__getSegmentBeginNodes = function(q) {
         // Find the segment start nodes within the document
         if (q === undefined) {
-            return larch.__getElementsOfClass("__lch_seg_begin", "span");
+            return self.__getElementsOfClass("__lch_seg_begin", "span");
         }
         else {
             // Return the elements referenced by q and their descendants, filtered for spans with the '__lch_seg_begin' class
@@ -236,16 +236,16 @@ Larch = function(view_id, send_events, maxInflightMessages) {
 
 
     // A list of segments that are broken due to bad HTML structure.
-    larch.__brokenSegmentIDs = null;
+    self.__brokenSegmentIDs = null;
 
-    larch.__register_segments = function(q) {
+    self.__register_segments = function(q) {
         // Iterate over all the segment begin nodes within the jQuery q
         // For any node that has not yet been initialised - this will be the case
         // with nodes just introduced to the DOM via a DOM manipulation -
         // register and initialise it
-        var segment_table = larch.__segment_table;
+        var segment_table = self.__segment_table;
 
-        var inlines = larch.__getSegmentBeginNodes(q);
+        var inlines = self.__getSegmentBeginNodes(q);
 
         for (var i = 0; i < inlines.length; i++) {
             // Get the start node and extract the segment ID
@@ -265,6 +265,8 @@ Larch = function(view_id, send_events, maxInflightMessages) {
                 while (true) {
                     // Set the node's segment ID
                     n.__lch_seg_id = segment_id;
+                    // Set the node's Larch instance
+                    n.__larch = self;
 
                     if (n.getAttribute  &&  n.getAttribute("class") === '__lch_seg_end'  && n.getAttribute("data-larchsegid") === segment_id) {
                         break;
@@ -274,10 +276,10 @@ Larch = function(view_id, send_events, maxInflightMessages) {
                     var nextNode = n.nextSibling;
                     if (nextNode === null) {
                         segmentIsValid = false;
-                        if (larch.__brokenSegmentIDs === null) {
-                            larch.__brokenSegmentIDs = [];
+                        if (self.__brokenSegmentIDs === null) {
+                            self.__brokenSegmentIDs = [];
                         }
-                        larch.__brokenSegmentIDs.push(segment_id);
+                        self.__brokenSegmentIDs.push(segment_id);
                         break;
                     }
                     n = nextNode;
@@ -290,7 +292,7 @@ Larch = function(view_id, send_events, maxInflightMessages) {
                     var end = n;
 
                     // Put an entry in our segment table
-                    segment_table[segment_id] = larch.__newSegmentState(start, end);
+                    segment_table[segment_id] = self.__newSegmentState(start, end);
                 }
                 else {
                     continue;
@@ -310,9 +312,10 @@ Larch = function(view_id, send_events, maxInflightMessages) {
     //
     //
 
-    larch.__executeJS = function(js_code, context) {
+    self.__executeJS = function(js_code, context) {
         // Execute some Javascript code supplied in `js_code`.
         // `context` provides contextual information for tracking errors.
+        var larch = self;  // Required so that there is a Larch instance accessible to the scripts
         try {
             eval(js_code);
         }
@@ -326,7 +329,7 @@ Larch = function(view_id, send_events, maxInflightMessages) {
     };
 
 
-    larch.__executeNodeScripts = function(node_scripts) {
+    self.__executeNodeScripts = function(node_scripts) {
         // Execute scripts that are used to initialise DOM nodes that are being
         // inserted into the DOM or shutdown nodes that are being removed
         // Node scripts are passed as an array of pairs, each one of the form [segment_id, script_js]
@@ -334,7 +337,8 @@ Larch = function(view_id, send_events, maxInflightMessages) {
         // and script_js is the Javascript source to executed.
         // The script will be evaluated in an environment in which `node` is the element/node
         // that it is to initialise
-        var segment_table = larch.__segment_table;
+        var segment_table = self.__segment_table;
+        var larch = self;  // Required so that there is a Larch instance accessible to the scripts
         for (var i = 0; i < node_scripts.length; i++) {
             var node_script = node_scripts[i];
             var segment_id = node_script[0];
@@ -345,7 +349,7 @@ Larch = function(view_id, send_events, maxInflightMessages) {
                 console.log("larch.__executeNodeScripts: Cannot get segment " + segment_id);
                 return;
             }
-            var nodes = larch.__getNodesInActiveSegment(state);
+            var nodes = self.__getNodesInActiveSegment(state);
             for (var j = 1; j < nodes.length - 1; j++) {
                 // The 'unused' variable node is referenced by the source code contained in the initialiser; it is needed by eval()
                 var node = nodes[j];        // <<-- DO NOT DELETE; needed by code executed by eval
@@ -359,6 +363,8 @@ Larch = function(view_id, send_events, maxInflightMessages) {
                         if (e.stack) {
                             console.log(e.stack);
                         }
+                        console.log("While executing");
+                        console.log(script[k]);
                     }
                 }
             }
@@ -367,7 +373,7 @@ Larch = function(view_id, send_events, maxInflightMessages) {
 
 
 
-    larch.__executePopupScripts = function(popup_scripts) {
+    self.__executePopupScripts = function(popup_scripts) {
         // Execute scripts that are used to initialise DOM nodes that are being
         // displayed within a popup
         // Node scripts are passed as an array of [segment_id, script_js] pairs,
@@ -375,7 +381,8 @@ Larch = function(view_id, send_events, maxInflightMessages) {
         // and script_js is the Javascript source to executed.
         // The script will be evaluated in an environment in which `popup_id` is the identity
         // of the popup and `nodes` is a reference to the elements at the root of the popup content.
-        var segment_table = larch.__segment_table;
+        var segment_table = self.__segment_table;
+        var larch = self;  // Required so that there is a Larch instance accessible to the scripts
         for (var i = 0; i < popup_scripts.length; i++) {
             var popup_script = popup_scripts[i];
             var segment_id = popup_script[0];
@@ -388,7 +395,7 @@ Larch = function(view_id, send_events, maxInflightMessages) {
             }
             // The 'unused' variables popup_id nad nodes are referenced by the source code contained in the initialiser; it is needed by eval()
             var popup_id = segment_id;        // <<-- DO NOT DELETE; needed by code executed by eval
-            var nodes = larch.__getNodesInActiveSegment(state);        // <<-- DO NOT DELETE; needed by code executed by eval
+            var nodes = self.__getNodesInActiveSegment(state);        // <<-- DO NOT DELETE; needed by code executed by eval
             try {
                 eval(script);
             }
@@ -411,7 +418,7 @@ Larch = function(view_id, send_events, maxInflightMessages) {
     //
 
 
-    larch.__applyChanges = function(changes) {
+    self.__applyChanges = function(changes) {
         // Apply changes
         // This takes a change set sent by the backend that describes
         // the updates that must be made to the DOM.
@@ -439,11 +446,11 @@ Larch = function(view_id, send_events, maxInflightMessages) {
         var initialise_scripts = changes.initialise_scripts;
         var shutdown_scripts = changes.shutdown_scripts;
 
-        var segment_table = larch.__segment_table;
+        var segment_table = self.__segment_table;
 
         // Execute shutdown scripts
         try {
-            larch.__executeNodeScripts(shutdown_scripts);
+            self.__executeNodeScripts(shutdown_scripts);
         }
         finally {
             // Handle removals
@@ -465,17 +472,17 @@ Larch = function(view_id, send_events, maxInflightMessages) {
 
                     //console.log("Replaced " + segment_id);
 
-                    var newState = larch.__createSegmentContentNodesFromSource(content);
+                    var newState = self.__createSegmentContentNodesFromSource(content);
                     newState.start.__lch_initialised = true;
 
                     // Unregister segment IDs
-                    var oldNodes = larch.__getNodesInActiveSegment(state);
+                    var oldNodes = self.__getNodesInActiveSegment(state);
                     oldNodes.forEach(function(n) {n.__lch_seg_id = null;});
 
-                    larch.__replaceSegment(state, newState);
+                    self.__replaceSegment(state, newState);
 
                     // Register segment IDs
-                    var newNodes = larch.__getNodesInActiveSegment(newState);
+                    var newNodes = self.__getNodesInActiveSegment(newState);
                     newNodes.forEach(function(n) {n.__lch_seg_id = segment_id;});
 
                     // Put in segment table
@@ -491,11 +498,11 @@ Larch = function(view_id, send_events, maxInflightMessages) {
                 var content = popups[i][1];
 
 
-                var newState = larch.__createSegmentContentNodesFromSource(content);
+                var newState = self.__createSegmentContentNodesFromSource(content);
                 newState.start.__lch_initialised = true;
 
                 // Register segment IDs
-                var newNodes = larch.__getNodesInActiveSegment(newState);
+                var newNodes = self.__getNodesInActiveSegment(newState);
                 newNodes.forEach(function(n) {n.__lch_seg_id = segment_id;});
                 popupNodes = popupNodes.concat(newNodes);
 
@@ -504,7 +511,7 @@ Larch = function(view_id, send_events, maxInflightMessages) {
             }
 
             // Replace the placeholders with the segments that they reference
-            var placeHolders = larch.__getPlaceHolderNodes();
+            var placeHolders = self.__getPlaceHolderNodes();
             // Replacing a placeholder may introduce content that contains yet more placeholders....
             while (placeHolders.length > 0) {
                 for (var i = 0; i < placeHolders.length; i++) {
@@ -517,22 +524,22 @@ Larch = function(view_id, send_events, maxInflightMessages) {
                     var segment = segment_table[segment_id];
 
                     // Replace it
-                    larch.__replacePlaceholder(p, segment);
+                    self.__replacePlaceholder(p, segment);
                 }
 
-                placeHolders = larch.__getPlaceHolderNodes();
+                placeHolders = self.__getPlaceHolderNodes();
             }
 
             // Register any unregistered segments that have been introduced by modifications
-            larch.__register_segments();
+            self.__register_segments();
             if (popupNodes.length > 0) {
-                larch.__register_segments($(popupNodes));
+                self.__register_segments($(popupNodes));
             }
 
 
             // Execute popup scripts
             try {
-                larch.__executePopupScripts(popup_scripts);
+                self.__executePopupScripts(popup_scripts);
             }
             finally {
                 //console.log("FINISHED UPDATE");
@@ -541,7 +548,7 @@ Larch = function(view_id, send_events, maxInflightMessages) {
 
             // Execute initialise scripts
             try {
-                larch.__executeNodeScripts(initialise_scripts);
+                self.__executeNodeScripts(initialise_scripts);
             }
             finally {
                 //console.log("FINISHED UPDATE");
@@ -560,38 +567,38 @@ Larch = function(view_id, send_events, maxInflightMessages) {
     //
 
 
-    larch.__highlightSegment = function(segment_id) {
-        var segment_table = larch.__segment_table;
+    self.__highlightSegment = function(segment_id) {
+        var segment_table = self.__segment_table;
         var state = segment_table[segment_id];
         if (state === undefined) {
             console.log("larch.__highlightSegment: Cannot get segment " + segment_id);
             return;
         }
-        var nodes = larch.__getNodesInActiveSegment(state);
+        var nodes = self.__getNodesInActiveSegment(state);
         for (var j = 1; j < nodes.length - 1; j++) {
             $(nodes[j]).addClass("segment_highlight");
         }
     };
 
-    larch.__unhighlightSegment = function(segment_id) {
-        var segment_table = larch.__segment_table;
+    self.__unhighlightSegment = function(segment_id) {
+        var segment_table = self.__segment_table;
         var state = segment_table[segment_id];
         if (state === undefined) {
             console.log("larch.__unhighlightSegment: Cannot get segment " + segment_id);
             return;
         }
-        var nodes = larch.__getNodesInActiveSegment(state);
+        var nodes = self.__getNodesInActiveSegment(state);
         for (var j = 1; j < nodes.length - 1; j++) {
             $(nodes[j]).removeClass("segment_highlight");
         }
     };
 
 
-    larch.__highlightElement = function(element) {
+    self.__highlightElement = function(element) {
         $(element).addClass("segment_highlight");
     };
 
-    larch.__unhighlightElement = function(element) {
+    self.__unhighlightElement = function(element) {
         $(element).removeClass("segment_highlight");
     };
 
@@ -606,7 +613,7 @@ Larch = function(view_id, send_events, maxInflightMessages) {
     //
 
 
-    larch.__createKey = function(keyCode, altKey, ctrlKey, shiftKey, metaKey) {
+    self.__createKey = function(keyCode, altKey, ctrlKey, shiftKey, metaKey) {
         return {
             keyCode: keyCode,
             altKey: altKey,
@@ -616,7 +623,7 @@ Larch = function(view_id, send_events, maxInflightMessages) {
         };
     };
 
-    larch.__matchKeyEvent = function(event, key) {
+    self.__matchKeyEvent = function(event, key) {
         if (key.keyCode === undefined  ||  event.keyCode == key.keyCode) {
             if (key.altKey !== undefined  &&  event.altKey != key.altKey) {
                 return false;
@@ -635,7 +642,7 @@ Larch = function(view_id, send_events, maxInflightMessages) {
         return false;
     };
 
-    larch.__eventToKey = function(event) {
+    self.__eventToKey = function(event) {
         return {
             keyCode: event.keyCode,
             altKey: event.altKey,
@@ -645,22 +652,22 @@ Larch = function(view_id, send_events, maxInflightMessages) {
         };
     };
 
-    larch.__handleKeyEvent = function(event, keys) {
+    self.__handleKeyEvent = function(event, keys) {
         for (var i = 0; i < keys.length; i++) {
             var key = keys[i];
-            if (larch.__matchKeyEvent(event, key)) {
+            if (self.__matchKeyEvent(event, key)) {
                 // We have a match
-                var k = larch.__eventToKey(event);
+                var k = self.__eventToKey(event);
                 return [k, key.preventDefault];
             }
         }
         return undefined;
     };
 
-    larch.__onkeydown = function(event, keys) {
-        var k = larch.__handleKeyEvent(event, keys);
+    self.__onkeydown = function(event, keys) {
+        var k = self.__handleKeyEvent(event, keys);
         if (k !== undefined) {
-            larch.postEvent(event.target, 'keydown', k[0]);
+            self.postEvent(event.target, 'keydown', k[0]);
             if (k[1] === 1) {
                 event.preventDefault();
                 return false;
@@ -669,10 +676,10 @@ Larch = function(view_id, send_events, maxInflightMessages) {
         return true;
     };
 
-    larch.__onkeyup = function(event, keys) {
-        var k = larch.__handleKeyEvent(event, keys);
+    self.__onkeyup = function(event, keys) {
+        var k = self.__handleKeyEvent(event, keys);
         if (k !== undefined) {
-            larch.postEvent(event.target, 'keyup', k[0]);
+            self.postEvent(event.target, 'keyup', k[0]);
             if (k[1] === 1) {
                 event.preventDefault();
                 return false;
@@ -681,10 +688,10 @@ Larch = function(view_id, send_events, maxInflightMessages) {
         return true;
     };
 
-    larch.__onkeypress = function(event, keys) {
-        var k = larch.__handleKeyEvent(event, keys);
+    self.__onkeypress = function(event, keys) {
+        var k = self.__handleKeyEvent(event, keys);
         if (k !== undefined) {
-            larch.postEvent(event.target, 'keypress', k[0]);
+            self.postEvent(event.target, 'keypress', k[0]);
             if (k[1] === 1) {
                 event.preventDefault();
                 return false;
@@ -702,21 +709,21 @@ Larch = function(view_id, send_events, maxInflightMessages) {
     //
     //
 
-    larch.__connectionToPageLost = false;
+    self.__connectionToPageLost = false;
 
-    larch.__serverMessageHandlers = {
+    self.__serverMessageHandlers = {
         modify_page: function(message) {
-            larch.__applyChanges(message.changes);
+            self.__applyChanges(message.changes);
         },
 
         execute_js: function(message) {
-            larch.__executeJS(message.js_code, "execution of JS from server");
+            self.__executeJS(message.js_code, "execution of JS from server");
         },
 
         add_dependencies: function(message) {
             var deps = message.deps;
             for (var i = 0; i < deps.length; i++) {
-                larch.__addDependency(deps[i]);
+                self.__addDependency(deps[i]);
             }
         },
 
@@ -724,20 +731,20 @@ Larch = function(view_id, send_events, maxInflightMessages) {
             var messages = message.messages;
             for (var i = 0; i < messages.length; i++) {
                 var msg = messages[i];
-                larch.__resourceMessage(msg.resource_id, msg.message);
+                self.__resourceMessage(msg.resource_id, msg.message);
             }
         },
 
         resources_disposed: function(message) {
             var resource_ids = message.resource_ids;
             for (var i = 0; i < resource_ids.length; i++) {
-                larch.__destroyResource(resource_ids[i]);
+                self.__destroyResource(resource_ids[i]);
             }
         },
 
         invalid_page: function(message) {
-            if (!larch.__connectionToPageLost) {
-                larch.__connectionToPageLost = true;
+            if (!self.__connectionToPageLost) {
+                self.__connectionToPageLost = true;
                 noty({
                     text: '<p class="invalid_page_style">Connection to page lost. Click to reload.<br><br><em>(the server may have been restarted)</em></p>',
                     layout: "center",
@@ -781,16 +788,16 @@ Larch = function(view_id, send_events, maxInflightMessages) {
         },
 
         error_handling_event: function(message) {
-            larch.showAlert(function() {
+            self.showAlert(function() {
                 var eventName = '<span class="event_error_event_name">' + message.event_name + '</span>';
                 var header;
                 if (message.event_seg_id !== null) {
                     var eventSegID = message.event_seg_id, handlerSegID = message.handler_seg_id;
                     var srcSegment = $('<span class="event_error_segment">segment</span>');
-                    srcSegment.mouseover(function() {larch.__highlightSegment(eventSegID)}).mouseout(function() {larch.__unhighlightSegment(eventSegID)});
+                    srcSegment.mouseover(function() {self.__highlightSegment(eventSegID)}).mouseout(function() {self.__unhighlightSegment(eventSegID)});
 
                     var hdlSegment = $('<span class="event_error_segment">segment</span>');
-                    hdlSegment.mouseover(function() {larch.__highlightSegment(handlerSegID)}).mouseout(function() {larch.__unhighlightSegment(handlerSegID)});
+                    hdlSegment.mouseover(function() {self.__highlightSegment(handlerSegID)}).mouseout(function() {self.__unhighlightSegment(handlerSegID)});
 
                     var sentFrom = $('<span>sent from a </span>');
                     sentFrom.append(srcSegment);
@@ -816,11 +823,11 @@ Larch = function(view_id, send_events, maxInflightMessages) {
         },
 
         error_retrieving_resource: function(message) {
-             larch.showAlert(function() {
+             self.showAlert(function() {
                var header;
                 var rscSegID = message.rsc_seg_id;
                 var rscSegment = $('<span class="event_error_segment">segment</span>');
-                rscSegment.mouseover(function() {larch.__highlightSegment(rscSegID)}).mouseout(function() {larch.__unhighlightSegment(rscSegID)});
+                rscSegment.mouseover(function() {self.__highlightSegment(rscSegID)}).mouseout(function() {self.__unhighlightSegment(rscSegID)});
 
                 var sentFrom = $('<span>associated with a </span>');
                 sentFrom.append(rscSegment);
@@ -837,7 +844,7 @@ Larch = function(view_id, send_events, maxInflightMessages) {
         },
 
         error_during_update: function(message) {
-            larch.showAlert(function() {
+            self.showAlert(function() {
                 var headerHtml = '<div class="event_error_header">Error while updating after handling events</div>';
                 var text = '<div class="exception_in_alert">' + headerHtml + message.err_html + '</div>';
                 return text;
@@ -873,12 +880,12 @@ Larch = function(view_id, send_events, maxInflightMessages) {
             };
 
             for (var i = 0; i < fixes_by_model.length; i++) {
-                larch.showAlert(makeAlertFactory(fixes_by_model[i]));
+                self.showAlert(makeAlertFactory(fixes_by_model[i]));
             }
         }
     };
 
-    larch.__handleMessage = function(handlerMap, msg, targetDescription, sourceDescription) {
+    self.__handleMessage = function(handlerMap, msg, targetDescription, sourceDescription) {
         var handler = handlerMap[msg.msgtype];
         if (handler !== undefined) {
             handler(msg);
@@ -895,26 +902,26 @@ Larch = function(view_id, send_events, maxInflightMessages) {
         }
     };
 
-    larch.__handleMessagesFromServer = function(messages) {
+    self.__handleMessagesFromServer = function(messages) {
         for (var i = 0; i < messages.length; i++) {
             var msg = messages[i];
-            larch.__handleMessage(larch.__serverMessageHandlers, msg, 'Ubiquitous Larch', 'server');
+            self.__handleMessage(self.__serverMessageHandlers, msg, 'Ubiquitous Larch', 'server');
         }
 
-        larch.__postModificationCleanup();
+        self.__postModificationCleanup();
     };
 
 
-    larch.__postModificationCleanup = function() {
-        if (larch.__brokenSegmentIDs !== null) {
-            larch.postDocumentEvent('broken_html_structure', larch.__brokenSegmentIDs);
-            larch.__brokenSegmentIDs = null;
+    self.__postModificationCleanup = function() {
+        if (self.__brokenSegmentIDs !== null) {
+            self.postDocumentEvent('broken_html_structure', self.__brokenSegmentIDs);
+            self.__brokenSegmentIDs = null;
         }
     };
 
 
 
-    larch.__buildElementEventMessage = function(segment_id, event_name, event_data) {
+    self.__buildElementEventMessage = function(segment_id, event_name, event_data) {
         return {
             msgtype: 'event',
             segment_id: segment_id,
@@ -925,10 +932,10 @@ Larch = function(view_id, send_events, maxInflightMessages) {
 
 
 
-    larch.__messageBlockCount = 0;
-    larch.__messageBuffer = [];
-    larch.__unacknowledgedSentMessages = 0;
-    larch.__handlingReceivedMessages = false;
+    self.__messageBlockCount = 0;
+    self.__messageBuffer = [];
+    self.__unacknowledgedSentMessages = 0;
+    self.__handlingReceivedMessages = false;
 
     // Messages are handled in a synchronous manner....
     // This does violate the normal way of interacting with web servers but....
@@ -943,22 +950,22 @@ Larch = function(view_id, send_events, maxInflightMessages) {
     // changes, which will gradually arrive at the client over the next few minutes, making the application unresponsive during this time.
     // Building up a back-log of server-side work is VERY easy to do, and makes the application feel more laggy in these instances
     // than if we buffer messages until we KNOW that the server is ready to work on them.
-    larch.__sendEventMessagesToServer = function(ev_messages) {
-        if (larch.__unacknowledgedSentMessages >= larch.__maxInflightMessages  ||  larch.__handlingReceivedMessages) {
+    self.__sendEventMessagesToServer = function(ev_messages) {
+        if (self.__unacknowledgedSentMessages >= self.__maxInflightMessages  ||  self.__handlingReceivedMessages) {
             // We have reached the limit of unacknowledged messages; buffer the messages
-            larch.__messageBuffer = larch.__messageBuffer.concat(ev_messages);
+            self.__messageBuffer = self.__messageBuffer.concat(ev_messages);
         }
         else {
             // Increment the number of unacknowledged sent messages
-            larch.__unacknowledgedSentMessages++;
+            self.__unacknowledgedSentMessages++;
 
             // Generate a message block index
-            var block_id = larch.__messageBlockCount;
-            larch.__messageBlockCount++;
+            var block_id = self.__messageBlockCount;
+            self.__messageBlockCount++;
 
             // Join the message buffer with the messages that are to be sent
-            var messages = larch.__messageBuffer.concat(ev_messages);
-            larch.__messageBuffer = [];
+            var messages = self.__messageBuffer.concat(ev_messages);
+            self.__messageBuffer = [];
 
             // Create the message block and serialise
             //console.log('EVENT ' + block_id + ': sent ' + ev_messages.length);
@@ -966,34 +973,34 @@ Larch = function(view_id, send_events, maxInflightMessages) {
             var message_packet = {
                 id: block_id,
                 messages: messages,
-                ack_immediately: larch.__unacknowledgedSentMessages >= larch.__maxInflightMessages
+                ack_immediately: self.__unacknowledgedSentMessages >= self.__maxInflightMessages
             };
 
-            larch.__send_events(message_packet);
+            self.__send_events(message_packet);
         }
     };
 
-    larch.receiveMessagesFromServer = function(messages) {
+    self.receiveMessagesFromServer = function(messages) {
         console.log("LARCH: larch.receiveMessagesFromServer: " + messages);
         //console.log('EVENT ' + block_id + ': received ' + msg.length);
         // We have received a message from the back-end; this counts as an acknowledgement
-        larch.__unacknowledgedSentMessages = 0;
+        self.__unacknowledgedSentMessages = 0;
 
-        larch.__handlingReceivedMessages = true;
-        larch.__handleMessagesFromServer(messages);
-        larch.__handlingReceivedMessages = false;
+        self.__handlingReceivedMessages = true;
+        self.__handleMessagesFromServer(messages);
+        self.__handlingReceivedMessages = false;
 
-        if (larch.__messageBuffer.length > 0) {
-            larch.__sendEventMessagesToServer([]);
+        if (self.__messageBuffer.length > 0) {
+            self.__sendEventMessagesToServer([]);
         }
     };
 
-    larch.__postEventMessage = function(ev_msg) {
+    self.__postEventMessage = function(ev_msg) {
         var messages = [];
 
-        if (larch.__eventFactoryQueue !== null) {
-            messages = larch.__eventFactoryQueue.buildMessageList();
-            larch.__eventFactoryQueue.clear();
+        if (self.__eventFactoryQueue !== null) {
+            messages = self.__eventFactoryQueue.buildMessageList();
+            self.__eventFactoryQueue.clear();
         }
 
         // Add the message that we are posting
@@ -1002,24 +1009,24 @@ Larch = function(view_id, send_events, maxInflightMessages) {
         }
 
         // Send
-        larch.__sendEventMessagesToServer(messages);
+        self.__sendEventMessagesToServer(messages);
     };
 
 
-    larch.postEvent = function(src_element, event_name, event_data) {
-        var segment_id = larch.__getSegmentIDForEvent(src_element);
+    self.postEvent = function(src_element, event_name, event_data) {
+        var segment_id = self.__getSegmentIDForEvent(src_element);
 
         if (segment_id !== null) {
-            var ev_msg = larch.__buildElementEventMessage(segment_id, event_name, event_data);
-            larch.__postEventMessage(ev_msg);
+            var ev_msg = self.__buildElementEventMessage(segment_id, event_name, event_data);
+            self.__postEventMessage(ev_msg);
         }
         else {
-            larch.__warnUserUnableToGetSegmentIDForElement(src_element);
+            self.__warnUserUnableToGetSegmentIDForElement(src_element);
         }
     };
 
 
-    larch.postDocumentEvent = function(event_name, event_data) {
+    self.postDocumentEvent = function(event_name, event_data) {
         var ev_msg = {
             msgtype: 'event',
             segment_id: null,
@@ -1027,21 +1034,21 @@ Larch = function(view_id, send_events, maxInflightMessages) {
             ev_data: event_data
         };
 
-        larch.__postEventMessage(ev_msg);
+        self.__postEventMessage(ev_msg);
     };
 
 
-    larch.__eventFactoryQueue = null;
+    self.__eventFactoryQueue = null;
 
 
-    larch.__createEventFactoryQueue = function(onClear) {
+    self.__createEventFactoryQueue = function(onClear) {
         var q = {
             eventFactories: [],
             factoriesBySrcAndName: {},
             timeoutID: null,
 
             hasQueuedEventFactory: function(src_element, event_name) {
-                var segment_id = larch.__getSegmentIDForEvent(src_element);
+                var segment_id = self.__getSegmentIDForEvent(src_element);
 
                 if (segment_id !== null) {
                     var key = segment_id + '__' + event_name;
@@ -1049,13 +1056,13 @@ Larch = function(view_id, send_events, maxInflightMessages) {
                     return q.factoriesBySrcAndName.hasOwnProperty(key);
                 }
                 else {
-                    larch.__warnUserUnableToGetSegmentIDForElement(src_element);
+                    self.__warnUserUnableToGetSegmentIDForElement(src_element);
                     return false;
                 }
             },
 
             queueEventFactory: function(src_element, event_name, event_factory) {
-                var segment_id = larch.__getSegmentIDForEvent(src_element);
+                var segment_id = self.__getSegmentIDForEvent(src_element);
 
                 if (segment_id !== null) {
                     var key = segment_id + '__' + event_name;
@@ -1067,7 +1074,7 @@ Larch = function(view_id, send_events, maxInflightMessages) {
                     q.factoriesBySrcAndName[key] = fac;
                 }
                 else {
-                    larch.__warnUserUnableToGetSegmentIDForElement(src_element);
+                    self.__warnUserUnableToGetSegmentIDForElement(src_element);
                 }
             },
 
@@ -1080,7 +1087,7 @@ Larch = function(view_id, send_events, maxInflightMessages) {
                         var key = q.eventFactories[i];
                         var fac = q.factoriesBySrcAndName[key];
                         var ev_data = fac.event_factory();
-                        var msg = larch.__buildElementEventMessage(fac.segment_id, fac.event_name, ev_data);
+                        var msg = self.__buildElementEventMessage(fac.segment_id, fac.event_name, ev_data);
                         messages.push(msg);
                     }
                 }
@@ -1116,7 +1123,7 @@ Larch = function(view_id, send_events, maxInflightMessages) {
             __sendAndClear: function() {
                 var messages = q.buildMessageList();
                 q.clear();
-                larch.__sendEventMessagesToServer(messages);
+                self.__sendEventMessagesToServer(messages);
             }
         };
 
@@ -1126,14 +1133,14 @@ Larch = function(view_id, send_events, maxInflightMessages) {
 
 
 
-    larch.queueEventFactory = function(src_element, event_name, event_factory) {
-        if (larch.__eventFactoryQueue === null) {
-            larch.__eventFactoryQueue = larch.__createEventFactoryQueue(function() {
-                larch.__eventFactoryQueue = null;
+    self.queueEventFactory = function(src_element, event_name, event_factory) {
+        if (self.__eventFactoryQueue === null) {
+            self.__eventFactoryQueue = self.__createEventFactoryQueue(function() {
+                self.__eventFactoryQueue = null;
             });
         }
-        larch.__eventFactoryQueue.queueEventFactory(src_element, event_name, event_factory);
-        larch.__eventFactoryQueue.setupTimeout();
+        self.__eventFactoryQueue.queueEventFactory(src_element, event_name, event_factory);
+        self.__eventFactoryQueue.setupTimeout();
     };
 
 
@@ -1144,13 +1151,13 @@ Larch = function(view_id, send_events, maxInflightMessages) {
     //
     //
 
-    larch.__enableAdditionalClientSideDebugging = false;
+    self.__enableAdditionalClientSideDebugging = false;
 
-    larch.__warnUserUnableToGetSegmentIDForElement = function(element) {
-        if (larch.__enableAdditionalClientSideDebugging) {
-            larch.showAlert(function() {
+    self.__warnUserUnableToGetSegmentIDForElement = function(element) {
+        if (self.__enableAdditionalClientSideDebugging) {
+            self.showAlert(function() {
                 var elem = $('<span class="event_error_segment">element</span>');
-                elem.mouseover(function() {larch.__highlightElement(element);}).mouseout(function() {larch.__unhighlightElement(element);});
+                elem.mouseover(function() {self.__highlightElement(element);}).mouseout(function() {self.__unhighlightElement(element);});
 
                 var text = $('<span>Unable to get find the segment containing </span>');
                 text.append(elem);
@@ -1170,7 +1177,7 @@ Larch = function(view_id, send_events, maxInflightMessages) {
     //
     //
 
-    larch.__alertBox = {
+    self.__alertBox = {
         visible: false,
         showQueued: false,
         alerts: [],
@@ -1178,41 +1185,41 @@ Larch = function(view_id, send_events, maxInflightMessages) {
         selectorSpinner: null,
 
         changePage: function(pageIndex) {
-            larch.__alertBox.body.children().remove();
-            var pageFn = larch.__alertBox.alerts[pageIndex];
-            larch.__alertBox.body.append(pageFn());
+            self.__alertBox.body.children().remove();
+            var pageFn = self.__alertBox.alerts[pageIndex];
+            self.__alertBox.body.append(pageFn());
         },
 
         notifyClosed: function() {
-            larch.__alertBox.visible = false;
-            larch.__alertBox.showQueued = false;
-            larch.__alertBox.alerts = [];
-            larch.__alertBox.body = null;
-            larch.__alertBox.selectorSpinner = null;
+            self.__alertBox.visible = false;
+            self.__alertBox.showQueued = false;
+            self.__alertBox.alerts = [];
+            self.__alertBox.body = null;
+            self.__alertBox.selectorSpinner = null;
         }
     };
 
-    larch.showAlert = function(contents) {
-        larch.__alertBox.alerts.push(contents);
+    self.showAlert = function(contents) {
+        self.__alertBox.alerts.push(contents);
 
-        if (!larch.__alertBox.showQueued) {
-            larch.__alertBox.showQueued = true;
+        if (!self.__alertBox.showQueued) {
+            self.__alertBox.showQueued = true;
 
             var openAlert = function() {
-                larch.__alertBox.visible = true;
-                larch.__alertBox.selectorSpinner = $('<input name="value" value="0">');
+                self.__alertBox.visible = true;
+                self.__alertBox.selectorSpinner = $('<input name="value" value="0">');
                 var header = $('<div class="alert_selector_header">Show alert </div>');
-                header.append(larch.__alertBox.selectorSpinner);
+                header.append(self.__alertBox.selectorSpinner);
 
-                var lastPageIndex = larch.__alertBox.alerts.length - 1;
+                var lastPageIndex = self.__alertBox.alerts.length - 1;
 
-                larch.__alertBox.body = $('<div class="alert_body"></div>');
-                var pageFn = larch.__alertBox.alerts[lastPageIndex];
-                larch.__alertBox.body.append(pageFn());
+                self.__alertBox.body = $('<div class="alert_body"></div>');
+                var pageFn = self.__alertBox.alerts[lastPageIndex];
+                self.__alertBox.body.append(pageFn());
 
                 var text = $('<div class="alert_box"></div>')
                 text.append(header);
-                text.append(larch.__alertBox.body);
+                text.append(self.__alertBox.body);
 
                 noty({
                     text: text,
@@ -1221,7 +1228,7 @@ Larch = function(view_id, send_events, maxInflightMessages) {
                     closeWith: [],
                     callback: {
                         onClose: function() {
-                            larch.__alertBox.notifyClosed();
+                            self.__alertBox.notifyClosed();
                         }
                     },
                     buttons: [
@@ -1235,9 +1242,9 @@ Larch = function(view_id, send_events, maxInflightMessages) {
                     ]
                 });
 
-                larch.__alertBox.selectorSpinner.spinner({
+                self.__alertBox.selectorSpinner.spinner({
                     spin: function(event, ui) {
-                        larch.__alertBox.changePage(ui.value);
+                        self.__alertBox.changePage(ui.value);
                     },
                     value: lastPageIndex,
                     min: 0,
@@ -1248,11 +1255,11 @@ Larch = function(view_id, send_events, maxInflightMessages) {
             setTimeout(openAlert, 0);
         }
         else {
-            if (larch.__alertBox.visible) {
-                var lastPageIndex = larch.__alertBox.alerts.length - 1;
-                larch.__alertBox.selectorSpinner.spinner("option", "max", lastPageIndex);
-                larch.__alertBox.selectorSpinner.spinner("value", lastPageIndex);
-                larch.__alertBox.changePage(lastPageIndex);
+            if (self.__alertBox.visible) {
+                var lastPageIndex = self.__alertBox.alerts.length - 1;
+                self.__alertBox.selectorSpinner.spinner("option", "max", lastPageIndex);
+                self.__alertBox.selectorSpinner.spinner("value", lastPageIndex);
+                self.__alertBox.changePage(lastPageIndex);
             }
         }
     };
@@ -1263,48 +1270,48 @@ Larch = function(view_id, send_events, maxInflightMessages) {
     //
     //
 
-    larch.__resourceIdToResource = {};
-    larch.__rscFetchCount = 0;
+    self.__resourceIdToResource = {};
+    self.__rscFetchCount = 0;
 
-    larch.__createResource = function(rscId) {
+    self.__createResource = function(rscId) {
         var rsc = {
             __rscId: rscId,
             __messageHandlers: {},
 
             __handleMessage: function(message) {
-                larch.__handleMessage(rsc.__messageHandlers, message, 'URL resource', 'server');
+                self.__handleMessage(rsc.__messageHandlers, message, 'URL resource', 'server');
             },
 
             sendMessage: function(message) {
-                larch.postDocumentEvent('resource_message', {
+                self.postDocumentEvent('resource_message', {
                     resource_id: rsc.__rscId,
                     message: message
                 });
             }
         };
 
-        larch.__resourceIdToResource[rscId] = rsc;
+        self.__resourceIdToResource[rscId] = rsc;
         return rsc;
     };
 
-    larch.__destroyResource = function(rscId) {
-       delete larch.__resourceIdToResource[rscId];
+    self.__destroyResource = function(rscId) {
+       delete self.__resourceIdToResource[rscId];
     };
 
-    larch.__resourceMessage = function(resourceId, message) {
-        larch.__resourceIdToResource[resourceId].__handleMessage(message);
+    self.__resourceMessage = function(resourceId, message) {
+        self.__resourceIdToResource[resourceId].__handleMessage(message);
     };
 
 
 
-    larch.__createURLResource = function(rscId, rscUrl) {
-        var rsc = larch.__createResource(rscId);
+    self.__createURLResource = function(rscId, rscUrl) {
+        var rsc = self.__createResource(rscId);
         rsc.url = rscUrl;
         rsc.__listeners = [];
 
         rsc.fetchString = function(handlerFn) {
-            var x = larch.__rscFetchCount;
-            larch.__rscFetchCount++;
+            var x = self.__rscFetchCount;
+            self.__rscFetchCount++;
             //console.log('Getting resource ');
             $.ajax({
                 type: 'GET',
@@ -1314,8 +1321,8 @@ Larch = function(view_id, send_events, maxInflightMessages) {
         };
 
         rsc.fetchJSON = function(handlerFn) {
-            var x = larch.__rscFetchCount;
-            larch.__rscFetchCount++;
+            var x = self.__rscFetchCount;
+            self.__rscFetchCount++;
             //console.log('Getting JSON resource ' + x);
             $.ajax({
                 type: 'GET',
@@ -1355,8 +1362,8 @@ Larch = function(view_id, send_events, maxInflightMessages) {
 
 
 
-    larch.__createChannelResource = function(rscId) {
-        var rsc = larch.__createResource(rscId);
+    self.__createChannelResource = function(rscId) {
+        var rsc = self.__createResource(rscId);
         rsc.__listeners = [];
 
         rsc.addListener = function(listener) {
@@ -1399,22 +1406,22 @@ Larch = function(view_id, send_events, maxInflightMessages) {
 
 
 
-    larch.__commands = []
+    self.__commands = []
 
 
-    larch.registerCommand = function(keySequence, commandId, description) {
+    self.registerCommand = function(keySequence, commandId, description) {
         var cmd = {
             keySequence: keySequence,
             commandId: commandId,
             description: description,
             invoke: function() {
-                larch.postDocumentEvent('command', cmd.commandId);
+                self.postDocumentEvent('command', cmd.commandId);
             }
         };
-        larch.__commands.push(cmd);
+        self.__commands.push(cmd);
     };
 
-    larch.registerClientSideCommand = function(keySequence, invokeFn, description) {
+    self.registerClientSideCommand = function(keySequence, invokeFn, description) {
         var cmd = {
             keySequence: keySequence,
             invokeFn: invokeFn,
@@ -1423,22 +1430,22 @@ Larch = function(view_id, send_events, maxInflightMessages) {
                 cmd.invokeFn();
             }
         };
-        larch.__commands.push(cmd);
+        self.__commands.push(cmd);
     };
 
-    larch.unregisterCommand = function(commandId) {
-        for (var i = 0; i < larch.__commands.length; i++) {
-            if (larch.__commands[i].commandId === commandId) {
-                delete larch.__commands[i];
+    self.unregisterCommand = function(commandId) {
+        for (var i = 0; i < self.__commands.length; i++) {
+            if (self.__commands[i].commandId === commandId) {
+                delete self.__commands[i];
                 return;
             }
         }
     };
 
-    larch.__compareKeySequences = function(commandSequence, enteredSequence) {
+    self.__compareKeySequences = function(commandSequence, enteredSequence) {
         if (enteredSequence.length === commandSequence.length) {
             for (var j = 0; j < enteredSequence.length; j++) {
-                if (!larch.__matchKeyEvent(enteredSequence[j], commandSequence[j])) {
+                if (!self.__matchKeyEvent(enteredSequence[j], commandSequence[j])) {
                     return false;
                 }
             }
@@ -1447,10 +1454,10 @@ Larch = function(view_id, send_events, maxInflightMessages) {
         return false;
     };
 
-    larch.__keySequenceStartsWith = function(commandSequence, enteredSequence) {
+    self.__keySequenceStartsWith = function(commandSequence, enteredSequence) {
         if (enteredSequence.length <= commandSequence.length) {
             for (var j = 0; j < enteredSequence.length; j++) {
-                if (!larch.__matchKeyEvent(enteredSequence[j], commandSequence[j])) {
+                if (!self.__matchKeyEvent(enteredSequence[j], commandSequence[j])) {
                     return false;
                 }
             }
@@ -1459,7 +1466,7 @@ Larch = function(view_id, send_events, maxInflightMessages) {
         return false;
     };
 
-    larch.__presentKeySequence = function(keySequence) {
+    self.__presentKeySequence = function(keySequence) {
         var htmlSrc = '';
         for (var j = 0; j < keySequence.length; j++) {
             var key = keySequence[j];
@@ -1477,8 +1484,8 @@ Larch = function(view_id, send_events, maxInflightMessages) {
     //
     //
 
-    larch.__notifyPopupClosed = function(popupID) {
-        larch.postDocumentEvent('notify_popup_closed', popupID);
+    self.__notifyPopupClosed = function(popupID) {
+        self.postDocumentEvent('notify_popup_closed', popupID);
     };
 
 
@@ -1490,7 +1497,7 @@ Larch = function(view_id, send_events, maxInflightMessages) {
     //
     //
 
-    larch.__createCommandHelpDialog = function(commands, onClose) {
+    self.__createCommandHelpDialog = function(commands, onClose) {
         // The help dialog structure
         var helpDialog = {
             dialog: null,
@@ -1510,14 +1517,14 @@ Larch = function(view_id, send_events, maxInflightMessages) {
         var makeLinkListener = function(cmd) {
             return function() {
                 cmd.invoke();
-                larch.__commandBar.close()
+                self.__commandBar.close()
                 return true;
             };
         };
 
         for (var i = 0; i < commands.length; i++) {
             var cmd = commands[i];
-            var keys = larch.__presentKeySequence(cmd.keySequence);
+            var keys = self.__presentKeySequence(cmd.keySequence);
             var cmdSeqQ = $('<td class="command_table command_table_key_seq">' + keys + '</td>');
             var descriptionLink = $('<span class="command_table_desc">' + cmd.description + '</a>');
             descriptionLink.on("click", makeLinkListener(cmd));
@@ -1549,7 +1556,7 @@ Larch = function(view_id, send_events, maxInflightMessages) {
     //
     //
 
-    larch.__createCommandBar = function(onClose) {
+    self.__createCommandBar = function(onClose) {
         var cmdBar = {
             partialCommandKeySequence: [],
             barNoty: null,
@@ -1566,14 +1573,14 @@ Larch = function(view_id, send_events, maxInflightMessages) {
                     // Find all matching commands
                     var matchingCommands = [];
 
-                    for (var i = 0; i < larch.__commands.length; i++) {
-                        var match = larch.__commands[i];
-                        if (larch.__keySequenceStartsWith(match.keySequence, cmdBar.partialCommandKeySequence)) {
+                    for (var i = 0; i < self.__commands.length; i++) {
+                        var match = self.__commands[i];
+                        if (self.__keySequenceStartsWith(match.keySequence, cmdBar.partialCommandKeySequence)) {
                             matchingCommands.push(match);
                         }
                     }
 
-                    cmdBar.helpDialog = larch.__createCommandHelpDialog(matchingCommands, function() {
+                    cmdBar.helpDialog = self.__createCommandHelpDialog(matchingCommands, function() {
                         cmdBar.helpDialog = null;
                     });
                 }
@@ -1621,9 +1628,9 @@ Larch = function(view_id, send_events, maxInflightMessages) {
             //
             __keySequenceModified: function() {
                 var matchingCommand = null;
-                for (var i = 0; i < larch.__commands.length; i++) {
-                    var cmd = larch.__commands[i];
-                    if (larch.__compareKeySequences(cmd.keySequence, cmdBar.partialCommandKeySequence)) {
+                for (var i = 0; i < self.__commands.length; i++) {
+                    var cmd = self.__commands[i];
+                    if (self.__compareKeySequences(cmd.keySequence, cmdBar.partialCommandKeySequence)) {
                         matchingCommand = cmd;
                         break;
                     }
@@ -1641,7 +1648,7 @@ Larch = function(view_id, send_events, maxInflightMessages) {
 
                 // Partial command; update the noty:
                 var notyText = 'Command: ';
-                notyText += larch.__presentKeySequence(cmdBar.partialCommandKeySequence);
+                notyText += self.__presentKeySequence(cmdBar.partialCommandKeySequence);
                 notyText += ' - or <span class="command_special_key">ESC</span> to cancel or <span class="command_special_key">H</span> for help';
 
                 cmdBar.barNoty.setText(notyText);
@@ -1685,7 +1692,7 @@ Larch = function(view_id, send_events, maxInflightMessages) {
                 }
                 else {
                     // Another key in the sequence
-                    var k = larch.__eventToKey(event);
+                    var k = self.__eventToKey(event);
                     cmdBar.addKey(k);
                 }
             }
@@ -1720,11 +1727,11 @@ Larch = function(view_id, send_events, maxInflightMessages) {
     };
 
 
-    larch.__commandBar = null;
+    self.__commandBar = null;
 
-    larch.__showCommandBar = function() {
-        larch.__commandBar = larch.__createCommandBar(function() {
-                larch.__commandBar = null;
+    self.__showCommandBar = function() {
+        self.__commandBar = self.__createCommandBar(function() {
+                self.__commandBar = null;
             }
         );
     };
@@ -1732,12 +1739,12 @@ Larch = function(view_id, send_events, maxInflightMessages) {
 
 
 
-    larch.__setupCommandListeners = function() {
+    self.__setupCommandListeners = function() {
         document.body.onkeydown = function(event) {
-            if (larch.__commandBar !== null) {
+            if (self.__commandBar !== null) {
                 // The command bar is active: send the event there
                 event.preventDefault();
-                larch.__commandBar.onKeyDown(event);
+                self.__commandBar.onKeyDown(event);
                 return false;
             }
             else {
@@ -1745,7 +1752,7 @@ Larch = function(view_id, send_events, maxInflightMessages) {
                 if (event.keyCode === 27) {
                     event.preventDefault();
                     // Show the command bar
-                    larch.__showCommandBar();
+                    self.__showCommandBar();
 
                     return false;
                 }
@@ -1763,27 +1770,27 @@ Larch = function(view_id, send_events, maxInflightMessages) {
     //
     //
 
-    larch.__liveIntervalID = null;
+    self.__liveIntervalID = null;
 
-    larch.__enableLiveliness = function() {
-        if (larch.__liveIntervalID === null) {
-            larch.__liveIntervalID = setInterval(function() {
-                larch.__postEventMessage(null);
+    self.__enableLiveliness = function() {
+        if (self.__liveIntervalID === null) {
+            self.__liveIntervalID = setInterval(function() {
+                self.__postEventMessage(null);
             }, 1000);
         }
     };
 
-    larch.__disableLiveliness = function() {
-        if (larch.__liveIntervalID !== null) {
-            clearInterval(larch.__liveIntervalID);
-            larch.__liveIntervalID = null;
+    self.__disableLiveliness = function() {
+        if (self.__liveIntervalID !== null) {
+            clearInterval(self.__liveIntervalID);
+            self.__liveIntervalID = null;
         }
     };
 
-    larch.initLivelinessToggle = function(node) {
+    self.initLivelinessToggle = function(node) {
         var toggle = $(node);
         if (toggle.hasClass('larch_liveliness_on')) {
-            larch.__enableLiveliness();
+            self.__enableLiveliness();
         }
 
         toggle.click(function() {
@@ -1792,12 +1799,12 @@ Larch = function(view_id, send_events, maxInflightMessages) {
             if (enabled) {
                 // Disable
                 toggle.removeClass('larch_liveliness_on');
-                larch.__disableLiveliness();
+                self.__disableLiveliness();
             }
             else {
                 // Enable
                 toggle.addClass('larch_liveliness_on');
-                larch.__enableLiveliness();
+                self.__enableLiveliness();
             }
         });
     };
@@ -1811,41 +1818,61 @@ Larch = function(view_id, send_events, maxInflightMessages) {
     //
     //
 
-    larch.initialise = function(initialisers, doc_init_js) {
+    self.initialise = function(initialisers, doc_init_js) {
         console.log("LARCH: larch.initialise");
-        larch.__register_segments();
+        self.__register_segments();
         try {
-            larch.__executeNodeScripts(initialisers);
+            self.__executeNodeScripts(initialisers);
         }
         finally {
-            larch.__setupCommandListeners();
+            self.__setupCommandListeners();
         }
-        larch.__postModificationCleanup();
+        self.__postModificationCleanup();
 
-        larch.__executeJS(doc_init_js, "Document initialisation scripts");
+        self.__executeJS(doc_init_js, "Document initialisation scripts");
 
         // Activate additional client side debugging toggle command: C-D
-        larch.registerClientSideCommand([larch.__createKey(67), larch.__createKey(68)],
+        self.registerClientSideCommand([self.__createKey(67), self.__createKey(68)],
             function() {
-                larch.__enableAdditionalClientSideDebugging = true;
+                self.__enableAdditionalClientSideDebugging = true;
             },
              'Enable additional client side debugging'
         );
 
         // Deactivate additional client side debugging toggle command: C-X
-        larch.registerClientSideCommand([larch.__createKey(67), larch.__createKey(88)],
+        self.registerClientSideCommand([self.__createKey(67), self.__createKey(88)],
             function() {
-                larch.__enableAdditionalClientSideDebugging = false;
+                self.__enableAdditionalClientSideDebugging = false;
             },
              'Disable additional client side debugging'
         );
 
         // Before unload
         window.onbeforeunload = function() {
-            larch.postDocumentEvent('close_page', null);
+            self.postDocumentEvent('close_page', null);
         };
     };
 
 
-    return larch;
+    return self;
 };
+
+
+
+Larch.getLarchInstanceForElement = function(src_element) {
+    // Get the segment ID that should be used to identify the source of an event to
+    // the backend.
+    // `src_element` is a DOM element. Searches the ancestors of src_element until one with
+    // a segment ID is found.
+    var n = src_element;
+    var segment_id = null;
+    while (n !== null) {
+        if ("__larch" in n) {
+            return n.__larch;
+        }
+        n = n.parentNode;
+    }
+
+    return null;
+};
+
