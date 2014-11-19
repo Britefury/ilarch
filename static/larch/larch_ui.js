@@ -8,11 +8,7 @@
 //-*************************
 
 var LarchControls = function(larch) {
-    var link = document.createElement("link");
-    link.type = "text/css";
-    link.rel = "stylesheet";
-    link.href = "/files/static/larch/larch_ui.css";
-    document.getElementsByTagName("head")[0].appendChild(link);
+    Larch.addCSS("/files/static/larch/larch_ui.css");
 
     larch.controls = {};
 

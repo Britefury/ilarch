@@ -1,0 +1,180 @@
+/*************************
+-* This program is free software; you can use it, redistribute it and/or
+-* modify it under the terms of the GNU Affero General Public License
+-* version 3 as published by the Free Software Foundation. The full text of
+-* the GNU Affero General Public License version 3 can be found in the file
+-* named 'LICENSE.txt' that accompanies this program. This source code is
+-* (C)copyright Geoffrey French 2011-2014.
+-*************************/
+
+/*
+Styles for text written to stdout and stderr
+block style (container), name style (title), and text style (content)
+*/
+
+.python_stdout_block {
+    border: 1px solid #00c000;
+    border-radius: 5px;
+    background: #efffef;
+    padding: 5px;
+    margin: 1px;
+}
+
+.python_stdout_name {
+    font-size: 0.75em;
+    font-variant: small-caps;
+    color: #00a000;
+    margin: 0;
+}
+
+.python_stdout_text {
+    margin: 2px 5px;
+    color: #008000;
+}
+
+
+.python_stderr_block {
+    border: 1px solid #c00000;
+    border-radius: 5px;
+    background: #ffefef;
+    padding: 5px;
+    margin: 2px 0;
+}
+
+.python_stderr_name {
+    font-size: 0.75em;
+    font-variant: small-caps;
+    color: #a00000;
+    margin: 0;
+}
+
+.python_stderr_text {
+    margin: 2px 5px;
+    color: #800000;
+}
+
+
+
+/*
+Styles for presenting Python values
+*/
+
+/* Punctuation: quotes, commas, etc */
+.pyprim_punctuation {
+    font-family: "Tahoma", "Geneva", sans-serif;
+    color : #0000ff;
+}
+
+/* None */
+.pyprim_none {
+    font-family: "Tahoma", "Geneva", sans-serif;
+    color : #000000;
+}
+
+/* Booleans */
+.pyprim_bool {
+    font-family: "Tahoma", "Geneva", sans-serif;
+    color : #008000;
+}
+
+/* String content (within quotes) */
+.pyprim_string {
+    font-family: "Tahoma", "Geneva", sans-serif;
+    color : #000000;
+}
+
+/* ints */
+.pyprim_int {
+    font-family: "Tahoma", "Geneva", sans-serif;
+    color : #800080;
+}
+
+/* longs */
+.pyprim_long {
+    font-family: "Tahoma", "Geneva", sans-serif;
+    color : #800080;
+}
+
+/* floats */
+.pyprim_float {
+    font-family: "Tahoma", "Geneva", sans-serif;
+    color : #400080;
+}
+
+/* imaginary parts of complex numbers */
+.pyprim_complex_j {
+    font-family: "Tahoma", "Geneva", sans-serif;
+    color : #004040;
+}
+
+
+/* Error box for exceptions */
+.error_box {
+    font-family: "Tahoma", "Geneva", sans-serif;
+    border: 1px solid #ff0000;
+    background: #ffe0e0;
+    border-radius: 5px;
+    padding: 3px;
+}
+
+.error_box_caption {
+    font-family: "Tahoma", "Geneva", sans-serif;
+    color : #ff0000;
+    font-size: 70%;
+}
+
+.error_box_content {
+    font-family: "Tahoma", "Geneva", sans-serif;
+    margin-left: 5px;
+}
+
+
+.exception_name {
+    font-family: "Tahoma", "Geneva", sans-serif;
+    color : #ff0000;
+}
+
+.exception_message {
+    font-family: "Tahoma", "Geneva", sans-serif;
+    color : #800000;
+}
+
+.exception_traceback {
+    font-family: "Tahoma", "Geneva", sans-serif;
+    color : #c00000;
+}
+
+.pythonobject {
+    font-family: "Tahoma", "Geneva", sans-serif;
+    border-width: 1px solid #808080;
+    border-radius: 5px;
+    padding: 3px;
+}
+
+.field_name {
+    font-family: "Tahoma", "Geneva", sans-serif;
+    color : #000080;
+}
+
+.field_value {
+    font-family: "Tahoma", "Geneva", sans-serif;
+    padding-left: 15px;
+}
+
+
+.python_keyword {
+    font-family: "Tahoma", "Geneva", sans-serif;
+    font-weight: bold;
+    color: #000080;
+}
+
+.python_name {
+    font-family: "Tahoma", "Geneva", sans-serif;
+    color: #000080;
+}
+
+.python_classname {
+    font-family: "Tahoma", "Geneva", sans-serif;
+    color: #008080;
+}
+
