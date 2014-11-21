@@ -1,20 +1,41 @@
 from IPython.core.getipython import get_ipython
 from IPython.html import widgets
 from IPython.display import display, Javascript
-from IPython.utils.traitlets import Unicode, Integer, List, Dict
+from IPython.utils.traitlets import Unicode, Integer, List, Dict, Bool, ObjectName
+
+import uuid
 
 import sys
 
-from larch.core.dynamicpage.page import EventHandleError
+from larch.core.dynamicpage.page import EventHandleError, DynamicPage
+from larch.core.incremental_view import IncrementalView
+from larch.core.subject import Subject
 from larch.core.dynamicpage import messages
 from larch.inspector import present_exception
 
+from IPython import display as ip_display
+from IPython.core import display as core_display
 
+
+
+
+def display_live(*objs, **kwargs):
+	for obj in objs:
+		display(ILarch.for_object(obj))
 
 def install_ilarch():
+	global _original__safe_get_formatter_method__
+
+	# Display the ILarch Javascript to get the ILarch widget installed
 	with open('static/larch/ilarch.js', 'r') as f:
 		ilarch_js = f.read()
 	display(Javascript(ilarch_js))
+
+	# Install the display_live function in IPython's display modules
+	ip_display.display_live = display_live
+	core_display.display_live = display_live
+
+
 
 
 class ILarch(widgets.DOMWidget):
@@ -35,8 +56,6 @@ class ILarch(widgets.DOMWidget):
 
 		for dep in deps:
 			dep.ipython_setup()
-
-		print 'ILarch.__init__: view_id={0}, initial_content={1}, doc_init_scripts={2}, initialisers={3}'.format(view_id, initial_content, doc_init_scripts, initialisers)
 
 		super(ILarch, self).__init__(view_id_=view_id, initial_content_=initial_content, doc_init_scripts_=doc_init_scripts, initialisers_=initialisers, **kwargs)
 
@@ -129,3 +148,10 @@ class ILarch(widgets.DOMWidget):
 		elif msg_type == 'larch_sync':
 			self._synchronize()
 
+
+
+	@staticmethod
+	def for_object(obj):
+		page = DynamicPage(None, str(uuid.uuid4()))
+		IncrementalView(Subject(obj), page)
+		return ILarch(page)

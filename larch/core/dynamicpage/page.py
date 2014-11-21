@@ -963,7 +963,11 @@ class _ChangeSet (object):
 		if set(self.__added_seg_to_html_bits.keys()) != popup_segs:
 			raise UnusedSegmentsError, set(self.__added_seg_to_html_bits.keys()).difference(popup_segs)
 
-		print 'CHANGES TO SEND: {0} removed, {1} modified, {2} popups, {3} popup scripts, {4} initialise scripts, {5} shutdown scripts'.format(len(self.removed), len(self.modified), len(popup_segs),
+
+
+
+	def print_contents(self):
+		print 'CHANGES TO SEND: {0} removed, {1} modified, {2} popups, {3} popup scripts, {4} initialise scripts, {5} shutdown scripts'.format(len(self.removed), len(self.modified), len(self.popups),
 																		       len(self.popup_scripts), len(self.initialise_scripts), len(self.shutdown_scripts))
 
 
