@@ -9,34 +9,14 @@
 
 
 
-Larch = function(view_id, send_events, maxInflightMessages) {
+Larch = function(container_element, initial_content_html, view_id, send_events, maxInflightMessages) {
     var self = {
+        __container_element: container_element,
+        __container_query: $(container_element),
         __view_id: undefined,
         __segment_table: {},
         __send_events: send_events,
         __maxInflightMessages: maxInflightMessages
-    };
-
-
-    self.__getElementsOfClass = function(className, tagName) {
-        // Utility function to get elements of a named class
-        // if running on IE, a slower method is used that first involves finding elements by tagName then filtering by class
-        if (document.getElementsByClassName) {
-            return document.getElementsByClassName(className);
-        }
-        else {
-            // IE does not support getElementsByClassName
-            var els = document.getElementsByTagName(tagName);
-            var i = 0;
-            var elem;
-            var placeHolders = [];
-            while (elem = els[i++]) {
-                if (elem.className === className) {
-                    placeHolders.push(elem);
-                }
-            }
-            return placeHolders;
-        }
     };
 
 
@@ -137,7 +117,7 @@ Larch = function(view_id, send_events, maxInflightMessages) {
             return;
         }
         return self.__getNodesInActiveSegment(state);
-    }
+    };
 
     self.__getNodesInInactiveSegment = function(segment) {
         // Get the nodes in an *inactive* segment
@@ -217,13 +197,13 @@ Larch = function(view_id, send_events, maxInflightMessages) {
 
     self.__getPlaceHolderNodes = function() {
         // Find the placeholder nodes within the document
-        return self.__getElementsOfClass("__lch_seg_placeholder", "span");
+        return self.__container_query.find("span.__lch_seg_placeholder");
     };
 
     self.__getSegmentBeginNodes = function(q) {
         // Find the segment start nodes within the document
         if (q === undefined) {
-            return self.__getElementsOfClass("__lch_seg_begin", "span");
+            return self.__container_query.find("span.__lch_seg_begin");
         }
         else {
             // Return the elements referenced by q and their descendants, filtered for spans with the '__lch_seg_begin' class
@@ -1852,6 +1832,10 @@ Larch = function(view_id, send_events, maxInflightMessages) {
             self.postDocumentEvent('close_page', null);
         };
     };
+
+
+    var content_q = $(initial_content_html);
+    content_q.appendTo(container_element);
 
 
     return self;

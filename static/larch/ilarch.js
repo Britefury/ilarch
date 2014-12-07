@@ -34,13 +34,10 @@ require(["widgets/js/widget",
                 self._send_larch_events(msg)
             };
 
-            self.__larch = Larch(view_id, send_events, max_inflight);
+            self.__larch = Larch(this.$el, initial_content, view_id, send_events, max_inflight);
             self.__larch = LarchControls(self.__larch);
 
-            this.$content = $(initial_content);
-            this.$content.appendTo(this.$el);
-
-             setTimeout(function() {
+            setTimeout(function() {
                     self.__larch.initialise(initialisers, doc_init_js);
                 }, 0);
         },
@@ -55,7 +52,6 @@ require(["widgets/js/widget",
         },
 
         _on_larch_msg: function(msg_data) {
-            //this.$content.text(msg_data);
             this.__larch.receiveMessagesFromServer(msg_data);
         },
 
