@@ -8,7 +8,6 @@
 ##-*************************
 from larch.core.dynamicpage.service import DynamicPageService
 from larch.core.incremental_view import IncrementalView
-# from larch import command
 
 
 class CouldNotResolveLocationError (Exception):
@@ -22,11 +21,6 @@ class ProjectionService (DynamicPageService):
 
 	A dynamic page service that uses the core system to display objects and resolves locations to
 	subjects.
-
-	Commands:
-	For each focus object on the subject path from the root to the final subject:
-		each focus that defines a __command__ should have it return a list of commands.
-		These lists are concatenated and are made available
 
 	Augmenting the page
 	It can be desirable to have a containing object be able to place a frame around pages of child objects.
@@ -60,9 +54,6 @@ class ProjectionService (DynamicPageService):
 		# Augment page
 		self.__augment_page(subject)
 
-		# Attach commands
-		self.__attach_commands(view, subject)
-
 		# Create the incremental view and attach as view data
 		view.view_data = IncrementalView(subject, view.dynamic_page)
 
@@ -75,9 +66,6 @@ class ProjectionService (DynamicPageService):
 
 		# Augment page
 		self.__augment_page(subject)
-
-		# Attach commands
-		self.__attach_commands(view, subject)
 
 		# Create the incremental view and attach as view data
 		view.view_data = IncrementalView(subject, view.dynamic_page)
@@ -103,17 +91,3 @@ class ProjectionService (DynamicPageService):
 		else:
 			augmented_page = augment_page_fn(subject)
 			subject.add_step(focus=augmented_page)
-
-
-	def __attach_commands(self, view, subject):
-		cmds = []
-		for f in subject.focii:
-			try:
-				method = f.__commands__
-			except AttributeError:
-				pass
-			else:
-				cmds.extend(method(view.dynamic_page.public_api))
-
-		command_set = command.CommandSet(cmds)
-		command_set.attach_to_page(view.dynamic_page)
