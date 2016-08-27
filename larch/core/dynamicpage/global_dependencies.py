@@ -48,7 +48,7 @@ class GlobalCSS (GlobalDependency):
 
 	def ipython_setup(self):
 		if self.__url is not None:
-			display(Javascript(css=self.__url))
+			display(Javascript(data='', css=self.__url))
 		else:
 			raise RuntimeError, 'This should not have happened, due to being checked earlier'
 

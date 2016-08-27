@@ -1,5 +1,6 @@
 from IPython.core.getipython import get_ipython
-from IPython.html import widgets
+import ipywidgets as widgets
+
 from IPython.display import display, Javascript
 from IPython.utils.traitlets import Unicode, Integer, List, Dict, Bool, ObjectName
 
@@ -57,7 +58,8 @@ class ILarch(widgets.DOMWidget):
 		for dep in deps:
 			dep.ipython_setup()
 
-		super(ILarch, self).__init__(view_id_=view_id, initial_content_=initial_content, doc_init_scripts_=doc_init_scripts, initialisers_=initialisers, **kwargs)
+		super(ILarch, self).__init__(view_id_=view_id, initial_content_=initial_content,
+									 doc_init_scripts_=doc_init_scripts, initialisers_=initialisers, **kwargs)
 
 		self.on_msg(self._on_msg_revc)
 
@@ -138,7 +140,7 @@ class ILarch(widgets.DOMWidget):
 		return client_messages + error_messages
 
 
-	def _on_msg_revc(self, _, msg):
+	def _on_msg_revc(self, _, msg, *args):
 		msg_type = msg.get('msg_type', '')
 		if msg_type == 'larch_events':
 			message_block = msg['data']

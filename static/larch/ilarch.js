@@ -1,4 +1,5 @@
 require(["widgets/js/widget",
+    "widgets/js/manager",
     "/files/static/larch/larch.js",
     "/files/static/larch/larch_ui.js",
     "/files/static/noty/jquery.noty.js",
@@ -15,10 +16,10 @@ require(["widgets/js/widget",
     "/files/static/noty/layouts/topCenter.js",
     "/files/static/noty/layouts/topRight.js",
     "/files/static/noty/themes/default.js",
-    "components/jquery-ui/ui/minified/jquery-ui.min"], function(WidgetManager){
+    "components/jquery-ui/ui/minified/jquery-ui.min"], function(widget, manager){
 
 
-    var ILarchView = IPython.DOMWidgetView.extend({
+    var ILarchView = widget.DOMWidgetView.extend({
         render: function(){
             var self = this;
 
@@ -67,5 +68,5 @@ require(["widgets/js/widget",
     });
 
     // Register the DatePickerView with the widget manager.
-    WidgetManager.register_widget_view('ILarchView', ILarchView);
+    manager.WidgetManager.register_widget_view('ILarchView', ILarchView);
 });
